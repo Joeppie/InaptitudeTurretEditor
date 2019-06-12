@@ -1,4 +1,5 @@
-
+# warning
+`This mod is highly a work in progress, and as of the first commit, no usuable functionality is of yet available to end-users.`
 
 
 # Turret Editor
@@ -11,7 +12,8 @@ However, the design and purpose of this mod slightly differ:
 * Costs for making turrets coaxial or independent targeting depend on the cost of the turret itself
 * There may be future versions where the modifications depend on high-quality trained engineers being available in sufficient quantities, or where production time depends on assembly blocks or available mechanics/engineering capacity.
 
-This mod is highly a work in progress, and as of the first commit, no usuable functionality is of yet available to end-users.
+
+
 
 
 # Usage
