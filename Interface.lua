@@ -1,4 +1,6 @@
 
+local SellableInventoryItem = require("sellableinventoryitem")
+
 
 -- namespace InaptitudeTurretWindow
 InaptitudeTurretWindow = {}
@@ -43,7 +45,12 @@ if onClient() then -- CLIENT
 		local rect = hsplit.top;
 		rect.width = 220;
 		
-		upgradeTurret = window:createSelection(rect, 1);
+		upgradeTurret = window:createSelection(rect, 2);
+		upgradeTurret:addEmpty();
+		upgradeTurret.dropIntoEnabled = 1
+		upgradeTurret.entriesSelectable = 0
+		upgradeTurret.onReceivedFunction = "onTurretReceived"
+		upgradeTurret.onDroppedFunction = "onTurretDropped"
 		
 		window:createLabel(
 		upgradeTurret.position,
@@ -54,11 +61,80 @@ if onClient() then -- CLIENT
 		
 		local improvementTab = tabbedWindow:createTab("Improvement", "data/textures/icons/tools.png", "Improvement");
 		
-		--improvementTab.
+		local improvementVsplit = UIVerticalSplitter(Rect(improvementTab.size), 10, 10, 0.7);
+
+		inventory = improvementTab:createInventorySelection(improvementVsplit.right, 5); --Created as a property, not local.
+		inventory.dragFromEnabled = 1
+		populateInventory(); --Also grabs systems for the time being, until this is resolved.
+		
+		local improvmentTabLeftHorizontalsplitter  = UIHorizontalSplitter(improvementVsplit.left, 10, 10, 0.5)
+		
+		sacrificeTurrets = improvementTab:createSelection(improvmentTabLeftHorizontalsplitter.top, 5);
+		
+		for i =0,4,1 do sacrificeTurrets:addEmpty(); end
 		
 		local modificationTab = tabbedWindow:createTab("Modification", "data/textures/icons/tinker.png", "Modification");
 		
+		--modificationTab.active = false;
+		
+		
+		
 	end
+	
+	function onShowWindow()
+		inventory:clear();
+		populateInventory();
+	end
+	
+	--Populate with the inventory which is appropriate; alliance or the individual player.
+	function populateInventory()
+		--todo: systems are not currently filtered out of this.
+		player = Player();
+		
+		if player.allianceIndex and ship.factionIndex == player.allianceIndex then
+			inventory:fill(alliance.index);
+		else
+			inventory:fill(player.index);
+		end
+		
+		print("listing all items");
+		for i,reference in pairs(inventory:getItems()) do
+		
+			if(reference.item.__avoriontype == "InventoryTurret") then --is a turret
+				print("turret " .. reference.item.weaponName);
+			else
+				print("not a turret, remove from list");
+					--todo: remove the element; this may need to happen outside of the iterator loop...
+				inventory:remove(i);
+			end
+			
+			
+		end
+		
+	end
+	
+	
+	function onTurretDropped(selectionIndex, kx, ky)
+		local selection = Selection(selectionIndex)
+		local key = ivec2(kx, ky)
+		moveItem(selection:getItem(key), Selection(selectionIndex), inventory, key, nil)
+		refreshButton()
+	end
+	
+	
+	function onTurretReceived(selectionIndex, fkx, fky, item, fromIndex, toIndex, tkx, tky)
+		print("test");
+		
+		if not item then return end
+
+		-- don't allow dragging from/into the left hand selections
+		if fromIndex == sacrificeTurrets.index then
+			return
+		end
+
+		moveItem(item, inventory, Selection(selectionIndex), ivec2(fkx, fky), ivec2(tkx, tky))
+
+		end
 		
 	function commentedOutBymakingitaseparaterunction()
 		local res = getResolution();
@@ -116,7 +192,7 @@ if onClient() then -- CLIENT
 		local organizer = UIOrganizer(vsplit.right);
 		organizer.marginBottom = 5;
 		
-		    local splitter = UIHorizontalMultiSplitter(Rect(window.size), 10, 10, 8)
+		local splitter = UIHorizontalMultiSplitter(Rect(window.size), 10, 10, 8)
 
 		window:createButton(splitter:partition(0), "Idle"%_t, "onUserIdleOrder")
 		window:createButton(splitter:partition(1), "Passive"%_t, "onUserPassiveOrder")
