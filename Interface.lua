@@ -11,26 +11,25 @@ require ("callable")
 
 local SellableInventoryItem = require("sellableinventoryitem")
 
----- name--spa--ce InaptitudeTurretWindow
---InaptitudeTurretWindow = {}
+-- namespace InaptitudeTurretWindow
+InaptitudeTurretWindow = {}
 
 
-function interactionPossible(Player)
+function InaptitudeTurretWindow.interactionPossible(Player)
 	return true, ""
 end
 
-function getIcon(Seed, Rarity)
+function InaptitudeTurretWindow.getIcon(Seed, Rarity)
 
 	return "data/textures/icons/repair-beam.png"
 end
 
-function initUI()
+function InaptitudeTurretWindow.initUI()
 	--local status, clientData = Player():invokeFunction("clientdata.lua", "getValue", "SectorOverview")
 	if not clientData then
 		--Player():invokeFunction("clientdata.lua", "setValue", "SectorOverview", {})
 		--invokeServerFunction("sendServerConfig")
 	end
-	
 	
 	font1 = 20;
 	font2 = 14;
@@ -70,7 +69,7 @@ function initUI()
 	
 	tabbedWindow = window:createTabbedWindow(hsplit.bottom)
 	
-	local improvementTab = tabbedWindow:createTab("Improvement", "data/textures/icons/tools.png", "Improvement");
+	improvementTab = tabbedWindow:createTab("Improvement", "data/textures/icons/tools.png", "Improvement");
 	
 	local improvementVsplit = UIVerticalSplitter(Rect(improvementTab.size), 10, 10, 0.7);
 
@@ -82,16 +81,21 @@ function initUI()
 	inventory.entriesSelectable = false;
 	inventory.dragFromEnabled = 1
 	inventory.onClickedFunction = "onInventoryClicked"
-	populateInventory(); --Also grabs systems for the time being, until this is resolved.
+	InaptitudeTurretWindow.populateInventory(); --Also grabs systems for the time being, until this is resolved.
 	
 	local improvmentTabLeftHorizontalsplitter  = UIHorizontalSplitter(improvementVsplit.left, 10, 10, 0.5)
 	
 	sacrificeTurrets = improvementTab:createSelection(improvmentTabLeftHorizontalsplitter.top, 5);
 	sacrificeTurrets.entriesSelectable = false;
+	sacrificeTurrets.dropIntoEnabled = true;
+	
+	sacrificeTurrets.onClickedFunction = "onTurretClicked"
+	sacrificeTurrets.onReceivedFunction = "onTurretReceived";
+	sacrificeTurrets.onDroppedFunction = "onTurretDropped";
 	
 	for i =0,4,1 do sacrificeTurrets:addEmpty(); end
 	
-	local modificationTab = tabbedWindow:createTab("Modification", "data/textures/icons/tinker.png", "Modification");
+	modificationTab = tabbedWindow:createTab("Modification", "data/textures/icons/tinker.png", "Modification");
 	
 	--modificationTab.active = false;
 	
@@ -99,23 +103,28 @@ function initUI()
 	
 end
 
-function onShowWindow()
+function InaptitudeTurretWindow.onShowWindow()
 	inventory:clear();
-	populateInventory();
+	InaptitudeTurretWindow.populateInventory();
 end
 
-function refreshUI()
+function InaptitudeTurretWindow.refreshUI()
 	inventory:clear();
-	populateInventory();
+	InaptitudeTurretWindow.populateInventory();
 	
 	upgradeTurret:clear();
 	upgradeTurret.addEmpty();
 	for i =0,4,1 do sacrificeTurrets:addEmpty(); end
 end
 
+--Update labels and buttons to reflect the options available.
+function InaptitudeTurretWindow.UpdateUIStatus()
+
+end
+
 
 --Populate with the inventory which is appropriate; alliance or the individual player.
-function populateInventory()
+function InaptitudeTurretWindow.populateInventory()
 	--todo: systems are not currently filtered out of this.
 	player = Player();
 	
@@ -141,19 +150,19 @@ function populateInventory()
 	
 end
 
-function onInventoryClicked(selectionIndex, kx, ky, item, button)
+function InaptitudeTurretWindow.onInventoryClicked(selectionIndex, kx, ky, item, button)
 	print('Hello I pressed this window?!')
 	if button == 2 or button == 3 then
 		-- fill upgradeTurret first.
 		local items = upgradeTurret:getItems()
 		if tablelength(items) < 1 then
-			moveItem(item, inventory, upgradeTurret, ivec2(kx, ky), nil)
+			InaptitudeTurretWindow.moveItem(item, inventory, upgradeTurret, ivec2(kx, ky), nil)
 			return
 		end
 
 		local items = sacrificeTurrets:getItems()
 		if tablelength(items) < 5 then
-			moveItem(item, inventory, sacrificeTurrets, ivec2(kx, ky), nil)
+			InaptitudeTurretWindow.moveItem(item, inventory, sacrificeTurrets, ivec2(kx, ky), nil)
 			return
 		end
 	end
@@ -161,17 +170,17 @@ end
 
 
 --Function taken from researchstation.lua
-function moveItem(item, from, to, fkey, tkey)
+function InaptitudeTurretWindow.moveItem(item, from, to, fkey, tkey)
     if not item then return end
 
     if from.index == inventory.index then -- move from inventory to a selection
         -- first, move the item that might be in place back to the inventory
         if tkey then
-            addItemToMainSelection(to:getItem(tkey))
+            InaptitudeTurretWindow.addItemToMainSelection(to:getItem(tkey))
             to:remove(tkey)
         end
 
-        removeItemFromMainSelection(fkey)
+        InaptitudeTurretWindow.removeItemFromMainSelection(fkey)
 
         -- fix item amount, we don't want numbers in the upper selections
         item.amount = nil
@@ -179,14 +188,14 @@ function moveItem(item, from, to, fkey, tkey)
 
     elseif to.index == inventory.index then
         -- move from selection to inventory
-        addItemToMainSelection(item)
+        InaptitudeTurretWindow.addItemToMainSelection(item)
         from:remove(fkey)
     end
 end
 
 
 --Function taken from researchstation.lua
-function removeItemFromMainSelection(key)
+function InaptitudeTurretWindow.removeItemFromMainSelection(key)
     local item = inventory:getItem(key)
     if not item then return end
 
@@ -203,7 +212,8 @@ function removeItemFromMainSelection(key)
 
 end
 
-function addItemToMainSelection(item)
+--Function taken from researchstation.lua
+function InaptitudeTurretWindow.addItemToMainSelection(item)
     if not item then return end
     if not item.item then return end
 
@@ -226,29 +236,29 @@ function addItemToMainSelection(item)
     inventory:add(item)
 end
 
-function onTurretDropped(selectionIndex, kx, ky)
+function InaptitudeTurretWindow.onTurretDropped(selectionIndex, kx, ky)
 	print('onTurretDropped')
 	local selection = Selection(selectionIndex)
 	local key = ivec2(kx, ky)
-	moveItem(selection:getItem(key), Selection(selectionIndex), inventory, key, nil)
+	InaptitudeTurretWindow.moveItem(selection:getItem(key), Selection(selectionIndex), inventory, key, nil)
 end
 
 
-function onTurretReceived(selectionIndex, fkx, fky, item, fromIndex, toIndex, tkx, tky)
+function InaptitudeTurretWindow.onTurretReceived(selectionIndex, fkx, fky, item, fromIndex, toIndex, tkx, tky)
 	print("onTurretReceived");
-	 moveItem(item, inventory, Selection(selectionIndex), ivec2(fkx, fky), ivec2(tkx, tky))
 	if not item then return end
+	InaptitudeTurretWindow.moveItem(item, inventory, Selection(selectionIndex), ivec2(fkx, fky), ivec2(tkx, tky))
+end
 
-	-- don't allow dragging from/into the left hand selections
-	if fromIndex == sacrificeTurrets.index then
-		return
-	end
-	moveItem(item, inventory, Selection(selectionIndex), ivec2(fkx, fky), ivec2(tkx, tky))
-	moveItem(item, inventory, Selection(selectionIndex), ivec2(fkx, fky), ivec2(tkx, tky))
+--function taken from researchstation.lua
+function InaptitudeTurretWindow.onTurretClicked(selectionIndex, fkx, fky, item, button)
+    if button == 3 or button == 2 then
+        InaptitudeTurretWindow.moveItem(item, Selection(selectionIndex), inventory, ivec2(fkx, fky), nil)
+    end
+end
 
-	end
 	
-function commentedOutBymakingitaseparaterunction()
+function InaptitudeTurretWindow.commentedOutBymakingitaseparaterunction()
 	local res = getResolution();
 	local size = vec2(1240, 900);
 
@@ -330,10 +340,10 @@ function commentedOutBymakingitaseparaterunction()
 	
 end
 
-function onClickDamage()
+function InaptitudeTurretWindow.onClickDamage()
    --_,turret = pairs(upgradeTurret:getItems());
 end
 
-function onClickCoaxial()
+function InaptitudeTurretWindow.onClickCoaxial()
    --_,turret = pairs(sacrifice:getItems());
 end
