@@ -9,26 +9,27 @@ require ("randomext")
 require ("stringutility")
 require ("callable")
 
+require("mods.InaptitudeTurretEditor.Implementation")
+
 local SellableInventoryItem = require("sellableinventoryitem")
 
--- namespace InaptitudeTurretWindow
-InaptitudeTurretWindow = {}
+-- namespace itw
+itw = {}
 
 
-function InaptitudeTurretWindow.interactionPossible(Player)
+function itw.interactionPossible(Player)
 	return true, ""
 end
 
-function InaptitudeTurretWindow.getIcon(Seed, Rarity)
+function itw.getIcon(Seed, Rarity)
 
 	return "data/textures/icons/repair-beam.png"
 end
-
-function InaptitudeTurretWindow.initUI()
+ 
+function itw.initUI()
 	--local status, clientData = Player():invokeFunction("clientdata.lua", "getValue", "SectorOverview")
-	if not clientData then
-		--Player():invokeFunction("clientdata.lua", "setValue", "SectorOverview", {})
-		--invokeServerFunction("sendServerConfig")
+	if not itw.config then
+		itw.config = invokeServerFunction("iti_getConfigServer");
 	end
 	
 	font1 = 20;
@@ -53,96 +54,129 @@ function InaptitudeTurretWindow.initUI()
 	rect.width = 128;
 	rect.height = 128;
 	
-	upgradeTurret = window:createSelection(rect, 1);
-	upgradeTurret:addEmpty();
-	upgradeTurret.dropIntoEnabled = true;
-	upgradeTurret.entriesSelectable = false;
-	upgradeTurret.onClickedFunction = "onTurretClicked"
-	upgradeTurret.onReceivedFunction = "onTurretReceived";
-	upgradeTurret.onDroppedFunction = "onTurretDropped";
+	itw.upgradeTurret = window:createSelection(rect, 1);
+	itw.upgradeTurret:addEmpty();
+	itw.upgradeTurret.dropIntoEnabled = true;
+	itw.upgradeTurret.entriesSelectable = false;
+	itw.upgradeTurret.onClickedFunction = "onTurretClicked"
+	itw.upgradeTurret.onReceivedFunction = "onTurretReceived";
+	itw.upgradeTurret.onDroppedFunction = "onTurretDropped";
 	
 	
 	window:createLabel(
-	upgradeTurret.position,
+	itw.upgradeTurret.position,
 	"Turret To Upgrade",
 	(font2))
 	
 	tabbedWindow = window:createTabbedWindow(hsplit.bottom)
 	
-	improvementTab = tabbedWindow:createTab("Improvement", "data/textures/icons/tools.png", "Improvement");
+	itw.improvementTab = tabbedWindow:createTab("Improvement", "data/textures/icons/tools.png", "Improvement");
 	
-	local improvementVsplit = UIVerticalSplitter(Rect(improvementTab.size), 10, 10, 0.7);
+	local improvementVsplit = UIVerticalSplitter(Rect(itw.improvementTab.size), 10, 10, 0.7);
 
-	local rect = improvementVsplit.right
-	rect.width = 128*2.5;
+	local rect = improvementVsplit.right;
 	
-	inventory = improvementTab:createInventorySelection(rect, 5); --Created as a property, not local.
-	inventory.dragFromEnabled = true;
-	inventory.entriesSelectable = false;
-	inventory.dragFromEnabled = 1
-	inventory.onClickedFunction = "onInventoryClicked"
-	InaptitudeTurretWindow.populateInventory(); --Also grabs systems for the time being, until this is resolved.
+	itw.inventory = itw.improvementTab:createInventorySelection(rect, 5); --Created as a property, not local.
+	itw.inventory.dragFromEnabled = true;
+	itw.inventory.entriesSelectable = false;
+	itw.inventory.dragFromEnabled = true;
+	itw.inventory.onClickedFunction = "onInventoryClicked"
+	itw.populateInventory(); --Also grabs systems for the time being, until this is resolved.
 	
 	local improvmentTabLeftHorizontalsplitter  = UIHorizontalSplitter(improvementVsplit.left, 10, 10, 0.5)
 	
-	sacrificeTurrets = improvementTab:createSelection(improvmentTabLeftHorizontalsplitter.top, 5);
-	sacrificeTurrets.entriesSelectable = false;
-	sacrificeTurrets.dropIntoEnabled = true;
+	local rect = improvmentTabLeftHorizontalsplitter.top;
+	rect.width = 128*5/2;
+	rect.height = 128;
 	
-	sacrificeTurrets.onClickedFunction = "onTurretClicked"
-	sacrificeTurrets.onReceivedFunction = "onTurretReceived";
-	sacrificeTurrets.onDroppedFunction = "onTurretDropped";
+	itw.sacrificeTurrets = itw.improvementTab:createSelection(rect, 5);
+	itw.sacrificeTurrets.entriesSelectable = false;
+	itw.sacrificeTurrets.dropIntoEnabled = true;
 	
-	for i =0,4,1 do sacrificeTurrets:addEmpty(); end
+	itw.sacrificeTurrets.onClickedFunction = "onTurretClicked"
+	itw.sacrificeTurrets.onReceivedFunction = "onTurretReceived";
+	itw.sacrificeTurrets.onDroppedFunction = "onTurretDropped";
 	
-	modificationTab = tabbedWindow:createTab("Modification", "data/textures/icons/tinker.png", "Modification");
+	for i =0,4,1 do itw.sacrificeTurrets:addEmpty(); end
+	
+	itw.modificationTab = tabbedWindow:createTab("Modification", "data/textures/icons/tinker.png", "Modification");
+	
+	itw.MakeUIForModificationTab();
 	
 	--modificationTab.active = false;
-	
-	
+end
+
+function itw.MakeUIForModificationTab()
+
+	local hsplit = UIHorizontalSplitter(Rect(itw.modificationTab.size), 10, 10, 0.3);
+		local topvsplit =  UIVerticalSplitter(hsplit.top, 10, 10, 0.5);
+			local tophsplit = UIHorizontalSplitter(topvsplit.left, 10, 10, 0.2);
+				itw.comboBox 	= itw.modificationTab:createComboBox(tophsplit.top,"onSelectModification");
+				itw.description = itw.modificationTab:createMultiLineTextBox(tophsplit.bottom);		
+		local bottomvsplit = UIVerticalSplitter(hsplit.bottom, 10, 10, 0.5);
+			local before = itw.modificationTab:createMultiLineTextBox(bottomvsplit.left);
+			local after = itw.modificationTab:createMultiLineTextBox(bottomvsplit.right);
 	
 end
 
-function InaptitudeTurretWindow.onShowWindow()
-	inventory:clear();
-	InaptitudeTurretWindow.populateInventory();
+function itw.onSelectModification()
+
 end
 
-function InaptitudeTurretWindow.refreshUI()
-	inventory:clear();
-	InaptitudeTurretWindow.populateInventory();
+function itw.onShowWindow()
+	itw.inventory:clear();
+	itw.populateInventory();
+end
+
+function itw.onCloseWindow()
+	itw.inventory:clear();
+	itw.populateInventory();
+end
+
+function itw.clearUI()
+	itw.inventory:clear();
+	itw.populateInventory();
 	
-	upgradeTurret:clear();
-	upgradeTurret.addEmpty();
-	for i =0,4,1 do sacrificeTurrets:addEmpty(); end
+	itw.upgradeTurret:clear();
+	itw.upgradeTurret.addEmpty();
+	for i =0,4,1 do itw.sacrificeTurrets:addEmpty(); end
+	itw.updateUIStatus();
 end
 
 --Update labels and buttons to reflect the options available.
-function InaptitudeTurretWindow.UpdateUIStatus()
+function itw.UpdateUIStatus()
+
+	if(#itw.upgradeTurret:getItems() > 0) then
+		itw.modificationTab:show();
+		--todo: disable all the buttons on the improvmentTab
+	else
+		itw.modificationTab:hide();
+		--todo: disable all the buttons on the improvmentTab
+	end
 
 end
 
 
 --Populate with the inventory which is appropriate; alliance or the individual player.
-function InaptitudeTurretWindow.populateInventory()
+function itw.populateInventory()
 	--todo: systems are not currently filtered out of this.
 	player = Player();
 	
 	if player.allianceIndex and ship.factionIndex == player.allianceIndex then
-		inventory:fill(alliance.index);
+		itw.inventory:fill(alliance.index);
 	else
-		inventory:fill(player.index);
+		itw.inventory:fill(player.index);
 	end
 	
 	print("listing all items");
-	for i,reference in pairs(inventory:getItems()) do
+	for i,reference in pairs(itw.inventory:getItems()) do
 	
 		if(reference.item.__avoriontype == "InventoryTurret") then --is a turret
 			--print("turret " .. reference.item.weaponName);
 		else
 			--print("not a turret, remove from list");
 				--todo: remove the element; this may need to happen outside of the iterator loop...
-			inventory:remove(i);
+			itw.inventory:remove(i);
 		end
 		
 		
@@ -150,19 +184,21 @@ function InaptitudeTurretWindow.populateInventory()
 	
 end
 
-function InaptitudeTurretWindow.onInventoryClicked(selectionIndex, kx, ky, item, button)
-	print('Hello I pressed this window?!')
+function itw.onInventoryClicked(selectionIndex, kx, ky, item, button)
+	--print('itw.onInventoryClicked')
 	if button == 2 or button == 3 then
-		-- fill upgradeTurret first.
-		local items = upgradeTurret:getItems()
+		-- fill itw.upgradeTurret first.
+		local items = itw.upgradeTurret:getItems()
 		if tablelength(items) < 1 then
-			InaptitudeTurretWindow.moveItem(item, inventory, upgradeTurret, ivec2(kx, ky), nil)
+			itw.moveItem(item, itw.inventory, itw.upgradeTurret, ivec2(kx, ky), nil)
+			itw.UpdateUIStatus();
 			return
 		end
 
-		local items = sacrificeTurrets:getItems()
+		local items = itw.sacrificeTurrets:getItems()
 		if tablelength(items) < 5 then
-			InaptitudeTurretWindow.moveItem(item, inventory, sacrificeTurrets, ivec2(kx, ky), nil)
+			itw.moveItem(item, itw.inventory, itw.sacrificeTurrets, ivec2(kx, ky), nil)
+			itw.UpdateUIStatus();
 			return
 		end
 	end
@@ -170,33 +206,34 @@ end
 
 
 --Function taken from researchstation.lua
-function InaptitudeTurretWindow.moveItem(item, from, to, fkey, tkey)
+function itw.moveItem(item, from, to, fkey, tkey)
     if not item then return end
 
-    if from.index == inventory.index then -- move from inventory to a selection
+    if from.index == itw.inventory.index then -- move from inventory to a selection
         -- first, move the item that might be in place back to the inventory
         if tkey then
-            InaptitudeTurretWindow.addItemToMainSelection(to:getItem(tkey))
+            itw.addItemToMainSelection(to:getItem(tkey))
             to:remove(tkey)
         end
 
-        InaptitudeTurretWindow.removeItemFromMainSelection(fkey)
+        itw.removeItemFromMainSelection(fkey)
 
         -- fix item amount, we don't want numbers in the upper selections
         item.amount = nil
         to:add(item, tkey)
 
-    elseif to.index == inventory.index then
-        -- move from selection to inventory
-        InaptitudeTurretWindow.addItemToMainSelection(item)
+    elseif to.index == itw.inventory.index then
+        -- move from selection to itw.inventory
+        itw.addItemToMainSelection(item)
         from:remove(fkey)
     end
+	itw.UpdateUIStatus();
 end
 
 
 --Function taken from researchstation.lua
-function InaptitudeTurretWindow.removeItemFromMainSelection(key)
-    local item = inventory:getItem(key)
+function itw.removeItemFromMainSelection(key)
+    local item = itw.inventory:getItem(key)
     if not item then return end
 
     if item.amount then
@@ -204,27 +241,27 @@ function InaptitudeTurretWindow.removeItemFromMainSelection(key)
         if item.amount == 0 then item.amount = nil end
     end
 
-    inventory:remove(key)
+    itw.inventory:remove(key)
 
     if item.amount then
-        inventory:add(item, key)
+        itw.inventory:add(item, key)
     end
-
+	itw.UpdateUIStatus();
 end
 
 --Function taken from researchstation.lua
-function InaptitudeTurretWindow.addItemToMainSelection(item)
+function itw.addItemToMainSelection(item)
     if not item then return end
     if not item.item then return end
 
     if item.item.stackable then
         -- find the item and increase the amount
-        for k, v in pairs(inventory:getItems()) do
+        for k, v in pairs(itw.inventory:getItems()) do
             if v.item and v.item == item.item then
                 v.amount = v.amount + 1
 
-                inventory:remove(k)
-                inventory:add(v, k)
+                itw.inventory:remove(k)
+                itw.inventory:add(v, k)
                 return
             end
         end
@@ -233,32 +270,33 @@ function InaptitudeTurretWindow.addItemToMainSelection(item)
     end
 
     -- when not found or not stackable, add it
-    inventory:add(item)
+    itw.inventory:add(item)
+	itw.UpdateUIStatus();
 end
 
-function InaptitudeTurretWindow.onTurretDropped(selectionIndex, kx, ky)
+function itw.onTurretDropped(selectionIndex, kx, ky)
 	print('onTurretDropped')
 	local selection = Selection(selectionIndex)
 	local key = ivec2(kx, ky)
-	InaptitudeTurretWindow.moveItem(selection:getItem(key), Selection(selectionIndex), inventory, key, nil)
+	itw.moveItem(selection:getItem(key), Selection(selectionIndex), itw.inventory, key, nil)
 end
 
 
-function InaptitudeTurretWindow.onTurretReceived(selectionIndex, fkx, fky, item, fromIndex, toIndex, tkx, tky)
+function itw.onTurretReceived(selectionIndex, fkx, fky, item, fromIndex, toIndex, tkx, tky)
 	print("onTurretReceived");
 	if not item then return end
-	InaptitudeTurretWindow.moveItem(item, inventory, Selection(selectionIndex), ivec2(fkx, fky), ivec2(tkx, tky))
+	itw.moveItem(item, itw.inventory, Selection(selectionIndex), ivec2(fkx, fky), ivec2(tkx, tky))
 end
 
 --function taken from researchstation.lua
-function InaptitudeTurretWindow.onTurretClicked(selectionIndex, fkx, fky, item, button)
+function itw.onTurretClicked(selectionIndex, fkx, fky, item, button)
     if button == 3 or button == 2 then
-        InaptitudeTurretWindow.moveItem(item, Selection(selectionIndex), inventory, ivec2(fkx, fky), nil)
+        itw.moveItem(item, Selection(selectionIndex), itw.inventory, ivec2(fkx, fky), nil)
     end
 end
 
 	
-function InaptitudeTurretWindow.commentedOutBymakingitaseparaterunction()
+function itw.commentedOutBymakingitaseparaterunction()
 	local res = getResolution();
 	local size = vec2(1240, 900);
 
@@ -280,17 +318,17 @@ function InaptitudeTurretWindow.commentedOutBymakingitaseparaterunction()
 	hsplitleft.padding = 6;
 	local rect = hsplitleft.top;
 	rect.width = 220;
-	upgradeTurret = window:createInventorySelection(rect, 1);
+	itw.upgradeTurret = window:createInventorySelection(rect, 1);
 
 	local rect = hsplitleft.bottom;
 	rect.width = 150;
 	sacrifice = window:createInventorySelection(rect,5);
 	
-	upgradeTurret.dropIntoEnabled = 1;
-	upgradeTurret.entriesSelectable = 0;
-	--upgradeTurret.onReceivedFunction = "onUpgradeTurretReceived"
-	--upgradeTurret.onDroppedFunction = "onUpgradeTurretDropped"
-	--upgradeTurret.onClickedFunction = "onUpgradeTurretClicked"
+	itw.upgradeTurret.dropIntoEnabled = 1;
+	itw.upgradeTurret.entriesSelectable = 0;
+	--itw.upgradeTurret.onReceivedFunction = "onitw.upgradeTurretReceived"
+	--itw.upgradeTurret.onDroppedFunction = "onitw.upgradeTurretDropped"
+	--itw.upgradeTurret.onClickedFunction = "onitw.upgradeTurretClicked"
 	
 	sacrifice.dropIntoEnabled = 1;
 	sacrifice.entriesSelectable = 0;
@@ -340,10 +378,10 @@ function InaptitudeTurretWindow.commentedOutBymakingitaseparaterunction()
 	
 end
 
-function InaptitudeTurretWindow.onClickDamage()
-   --_,turret = pairs(upgradeTurret:getItems());
+function itw.onClickDamage()
+   --_,turret = pairs(itw.upgradeTurret:getItems());
 end
 
-function InaptitudeTurretWindow.onClickCoaxial()
+function itw.onClickCoaxial()
    --_,turret = pairs(sacrifice:getItems());
 end

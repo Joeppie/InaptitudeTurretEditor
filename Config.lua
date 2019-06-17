@@ -1,5 +1,4 @@
 --the config object contains all of the settings for the mod.
---Each of the 
 local config =
 {
 
