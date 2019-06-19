@@ -10,14 +10,30 @@ local config =
 			Description = "By adding automated servos, a command module and targeting systems, a turret can fire freely at targets of its own accord." ,
 			Enabled = true,
 			Cost = nil,
-			RelativeCost = 0.25
+			RelativeCost = 0.25,
+			Parameters = 
+			{
+				["Independent Targeting"] =  
+				{
+						Description = "Independent Targeting",
+						type="bool"
+				}
+			}
 		},
 		Burstfire = 
 		{
 			Description = "Burstfire allows a turret to fire much faster, but it is an ugly engingeering hack, how it affects a turret varies and depends on the turrets design." ,
 			Enabled = false,
 			Cost = nil,
-			RelativeCost = 0.25
+			RelativeCost = 0.25,
+			Parameters = 
+			{
+				Burstfire =  
+				{
+						Description = "Burstfire enabled?",
+						type="bool"
+				}
+			}
 		},
 		Name = 
 		{
@@ -29,10 +45,8 @@ local config =
 			{
 				Name = 
 				{
+					type="string",
 					Description = "Changes the name of your turret",
-					default = 1;
-					min = 0.5,
-					max = 5
 				}
 			}
 		},
@@ -46,41 +60,46 @@ local config =
 			{
 				Size = 
 				{
+					type="float",
 					Description = "Changes the physical size of the turret",
 					default = 1;
 					min = 0.5,
-					max = 5
+					max = 5,
+					steps = 10
 				}
 			}
 		},
 		Color = 
 		{
-			Description = "Let it shine.",
+			Description = "Bring some color to your life.. or your enemies' death.",
 			Enabled = true,
 			Cost = 5000,
 			RelativeCost = nil,
-			Params = 
+			Parameters = 
 			{
 				Red = 
 				{
-					Description = "The color of your enemies blood.",
-					type = float,
+					Description = "Red",
+					type = "float",
 					min = 0,
-					max = 255
+					max = 255,
+					steps = 255
 				},
 				Green = 
 				{
-					Description = "The color of your enemies envy.",
-					type = float,
+					Description = "Green",
+					type = "float",
 					min = 0,
-					max = 255
+					max = 255,
+					steps = 255
 				},
 				Blue = 
 				{
-					Description = "The lovely hue of your enemies face after you are done with them.",
-					type = float,
+					Description = "Blue",
+					type = "float",
 					min = 0,
-					max = 255
+					max = 255,
+					steps = 255
 				}
 			}
 		},
@@ -89,7 +108,15 @@ local config =
 			Description = "By sacrificing dampeners and the ability of a turret to re-align itself with targets, far greater firepower and energy flow can safely be achieved.",
 			Enabled = true,
 			Cost = nil,
-			RelativeCost = 0.5
+			RelativeCost = 0.5,
+			Parameters = 
+			{
+				Coaxial =  
+				{
+						Description = "Coaxial on?",
+						type="bool"
+				}
+			}
 		}
 	},
 	TurretImprovementOptions = 
