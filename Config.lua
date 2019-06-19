@@ -15,6 +15,7 @@ local config =
 			{
 				["Independent Targeting"] =  
 				{
+						acessor ="IndependentTargeting",
 						Description = "Independent Targeting",
 						type="bool"
 				}
@@ -30,6 +31,7 @@ local config =
 			{
 				Burstfire =  
 				{
+						acessor ="Burstfire",
 						Description = "Burstfire enabled?",
 						type="bool"
 				}
@@ -45,6 +47,7 @@ local config =
 			{
 				Name = 
 				{
+					acessor ="TurretName",
 					type="string",
 					Description = "Changes the name of your turret",
 				}
@@ -60,9 +63,9 @@ local config =
 			{
 				Size = 
 				{
+					acessor ="Size",
 					type="float",
 					Description = "Changes the physical size of the turret",
-					default = 1;
 					min = 0.5,
 					max = 5,
 					steps = 10
@@ -79,6 +82,7 @@ local config =
 			{
 				Red = 
 				{
+					acessor ="ColorRed",
 					Description = "Red",
 					type = "float",
 					min = 0,
@@ -87,6 +91,7 @@ local config =
 				},
 				Green = 
 				{
+					acessor ="ColorGreen",
 					Description = "Green",
 					type = "float",
 					min = 0,
@@ -95,6 +100,7 @@ local config =
 				},
 				Blue = 
 				{
+					acessor ="ColorBlue",
 					Description = "Blue",
 					type = "float",
 					min = 0,
@@ -113,7 +119,8 @@ local config =
 			{
 				Coaxial =  
 				{
-						Description = "Coaxial on?",
+						acessor ="Coaxial",
+						Description = "Toggle Coaxial",
 						type="bool"
 				}
 			}

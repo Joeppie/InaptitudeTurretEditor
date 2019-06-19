@@ -186,13 +186,27 @@ function ite.onSelectModification()
 	if not option or option == "" or option == nil then return end
 	
 	local modification = ite.config.TurretModificationOptions[option];		
+	
+	--Request the values of the parameters from the server.
+	invokeServerFunction("sendModificationParameters",option,ite.turret.index);
 		
-	ite.description.text = modification.Description;
+	local cost = 0;
+	if modification.RelativeCost ~= nil then cost = cost + modification.RelativeCost * ite.turret.sellableitem.price; end
+	if modification.Cost ~= nil then cost = cost + modification.Cost; end
+	
+	if cost > 0 then
+		ite.description.text = modification.Description .. "\n modification cost: " .. cost ;
+	else
+		ite.description.text = modification.Description;
+	end
+	
+	
 	
 	local numElements = 0;
 	
 	ite.modificationUI:clear();
 	
+		
 	--Define/re-define a more or less dummy function that is mandated by some of the UI elements that may be used.
 	ite.currentModification = option;
 	
@@ -233,7 +247,7 @@ function ite.onSelectModification()
 	end
 	
 	
-	local rect = DynamicRect(nil,100,nil,numElements+1);
+	local rect = DynamicRect(500,100,nil,numElements+1);
 	ite.modificationUI:createFrame(rect);
 	ite.modificationUI:createButton(rect,"Apply modification",ite.requestModification) 
 	
@@ -287,6 +301,16 @@ function ite.UpdateUIStatus()
 	local items = ite.upgradeTurret:getItems()
 		 
 	if ite.config and tablelength(items) > 0 then 
+		ite.turret = {};
+		
+		--We need to make use of the sellableitem, which uses inventoryitem price to calculate prices for our turrets.
+		ite.turret.index = ite.upgradeTurret:getItem(ivec2(0,0)).index;
+		ite.turret.turret = ite.upgradeTurret:getItem(ivec2(0,0)).item;
+		ite.turret.sellableitem = SellableInventoryItem(ite.turret.turret,ite.turret.index,Player());
+	
+		print('item selected',ite.item)
+		print('item selected',ite.sellableitem)
+	
 		print("enabling tab")
 		--todo: disable all the buttons on the improvmentTab
 			--Populate modification tab box, so options can be selected.
@@ -418,6 +442,8 @@ function ite.onTurretDropped(selectionIndex, kx, ky)
 	local key = ivec2(kx, ky)
 	ite.moveItem(selection:getItem(key), Selection(selectionIndex), ite.inventory, key, nil)
 	ite.UpdateUIStatus();
+	
+
 end
 
 
