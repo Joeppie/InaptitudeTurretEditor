@@ -1,38 +1,95 @@
 --the config object contains all of the settings for the mod.
 local config =
-{
-
+{	
+	--Each entry below denotes the name, cost, and parameters of individual modifications that can be done.
+	--Each modification does not consume turrets. Future additions may require systems or turrets to sacrifice.
 	TurretModificationOptions = 
 	{
-		Coaxial = 
+		["Independent Targeting"] = 
 		{
+			Description = "By adding automated servos, a command module and targeting systems, a turret can fire freely at targets of its own accord." ,
 			Enabled = true,
 			Cost = nil,
-			RelativeCost = 0.5
+			RelativeCost = 0.25
 		},
-		IndependentTargeting = 
+		Burstfire = 
 		{
-			 Enabled = true,
-			 Cost = nil,
-			 RelativeCost = 0.25
+			Description = "Burstfire allows a turret to fire much faster, but it is an ugly engingeering hack, how it affects a turret varies and depends on the turrets design." ,
+			Enabled = false,
+			Cost = nil,
+			RelativeCost = 0.25
 		},
-		BurstFire = 
+		Name = 
 		{
-			 Enabled = false,
-			 Cost = nil,
-			 RelativeCost = 0.25
+			Description = "`There are people who believe it's bad luck for a gun not to have a name, and some guns just seem to pick up a nickname.`" ,
+			Enabled = false,
+			Cost = nil,
+			RelativeCost = 0.25,
+			Parameters = 
+			{
+				Name = 
+				{
+					Description = "Changes the name of your turret",
+					default = 1;
+					min = 0.5,
+					max = 5
+				}
+			}
 		},
 		Size = 
 		{
-			 Enabled = true,
-			 Cost = nil,
-			 RelativeCost = 0.1
+			Description = "Modifying the size of a turret makes it either more compact, or more intimidating. Minimizing turret profile is useful for coaxially mounted ones especially.",
+			Enabled = true,
+			Cost = nil,
+			RelativeCost = 0.1,
+			Parameters = 
+			{
+				Size = 
+				{
+					Description = "Changes the physical size of the turret",
+					default = 1;
+					min = 0.5,
+					max = 5
+				}
+			}
 		},
 		Color = 
 		{
-			 Enabled = true,
-			 Cost = nil,
-			 RelativeCost = 0.05
+			Description = "Let it shine.",
+			Enabled = true,
+			Cost = 5000,
+			RelativeCost = nil,
+			Params = 
+			{
+				Red = 
+				{
+					Description = "The color of your enemies blood.",
+					type = float,
+					min = 0,
+					max = 255
+				},
+				Green = 
+				{
+					Description = "The color of your enemies envy.",
+					type = float,
+					min = 0,
+					max = 255
+				},
+				Blue = 
+				{
+					Description = "The lovely hue of your enemies face after you are done with them.",
+					type = float,
+					min = 0,
+					max = 255
+				}
+			}
+		},
+		Coaxial = 
+		{
+			Description = "By sacrificing dampeners and the ability of a turret to re-align itself with targets, far greater firepower and energy flow can safely be achieved.",
+			Enabled = true,
+			Cost = nil,
+			RelativeCost = 0.5
 		}
 	},
 	TurretImprovementOptions = 
@@ -73,7 +130,7 @@ local config =
 			end	
 			
 		end
-	}	
+	},
 }
 
 return config;

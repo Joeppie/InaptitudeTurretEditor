@@ -1,25 +1,30 @@
 --This file contains the implementation for the server side functions of the turret editor.
 require ("callable")
 
--- namespace iti
-iti = {}
+-- namespace ite
+ite = {}
 
 
-
-if not iti.config then
-	iti.config = require("mods.InaptitudeTurretEditor.Config")
+--Code for sending the configuration to the client.
+if onServer() and not ite.config then
+    ite.config = require("mods.InaptitudeTurretEditor.Config")
 end
 
-
-function iti.getConfig()
-	invokeServerFunction("server_getConfig")
+function ite.initealize()
+    if onClient() then
+        print("requesting config")
+        invokeServerFunction("sendConfig")
+    end
 end
 
-function iti.server_getConfig()
-	return iti.config;
+function ite.sendConfig()
+    print("sending config")
+    invokeClientFunction(Player(callingPlayer), "receiveConfig", ite.config)
 end
-callable(iti,"server_getConfig");
+callable(ite, "sendConfig")
 
+
+--Actual implementation
 
 
 
