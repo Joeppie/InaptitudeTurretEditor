@@ -32,6 +32,8 @@ function ite.initUI()
 --		ite.config = invokeServerFunction("iti_getConfigServer");
 --	end
 
+	--Used to store data for current modification from modification tab.
+	ite.modificationStatus = {};
 	
 	font1 = 20;
 	font2 = 14;
@@ -106,10 +108,10 @@ function ite.initUI()
 	ite.MakeUIForModificationTab();
 	
 	local slider = ite.improvementTab:createSlider(rect,0, 55,10, name,"modificationUpdate");
-		slider.showValue = true;
-		slider.showMaxValue = true;
-		slider.showDescription = true;
-		slider.value = 33;
+	slider.showValue = true;
+	slider.showMaxValue = true;
+	slider.showDescription = true;
+	slider.value = 33;
 	
 	--modificationTab.active = false;
 	
@@ -206,10 +208,13 @@ function ite.onSelectModification()
 	
 	ite.modificationUI:clear();
 	
+	ite.modificationStatus = { modified = false };
+	
 		
 	--Define/re-define a more or less dummy function that is mandated by some of the UI elements that may be used.
-	ite.currentModification = option;
+	ite.modificationStatus.currentModification = option;
 	
+	ite.modificationStatus.modificationUIElements = {}
 
 	print('Adding UI elements.');
 	
@@ -223,41 +228,48 @@ function ite.onSelectModification()
 			local vsplit = UIVerticalSplitter(rect, 10, 10, 0.5);
 			local labelRect = vsplit.left;
 			local elementRect = vsplit.right;
+			
+			
 		
 			local ui;
 			--Create appropriate element for each element.
 			if(parameter.type == "bool") then
 				local check = ite.modificationUI:createCheckBox(elementRect,parameter.Description, "modificationUpdate") 
+				ite.modificationStatus.modificationUIElements[name] = check;
 			elseif(parameter.type == "float") then
 				local slider = ite.modificationUI:createSlider(elementRect,parameter.min, parameter.max,parameter.steps, name,"modificationUpdate");
+				ite.modificationStatus.modificationUIElements[name] = slider;
 				slider.showValue = true;
 				slider.showMaxValue = true;
 				slider.showDescription = true;
 				slider.value = (parameter.min+parameter.max)/2;
 				--slider.toolTip = parameter.Description;
 			elseif (parameter.type == "string") then
-				ite.modificationUI:createTextBox(elementRect, "modificationUpdate");
+				ite.modificationStatus.modificationUIElements[name] = ite.modificationUI:createTextBox(elementRect, "modificationUpdate");
+				
 			else
 				--If this happens,the config is incorrect, or this implementation is out of date.
 				ite.modificationUI:createLabel(elementRect,"<Error: update mod or seek help.>",font2);
 			end
 			
 			ite.modificationUI:createLabel(labelRect,name,font2);
+			
+
 		end
 	end
 	
-	
 	local rect = DynamicRect(500,100,nil,numElements+1);
+	local vsplit = UIVerticalSplitter(rect, 10, 10, 0.5);
+	local elementRect = vsplit.right;
 	ite.modificationUI:createFrame(rect);
-	ite.modificationUI:createButton(rect,"Apply modification",ite.requestModification) 
-	
-	--Create apply button to allow constructed UI to submit.
-	--Todo: implement server hook for generic interface :)
-
+	ite.modificationUI:createButton(elementRect,"Apply modification","requestModification") 
 end
 
 function ite.requestModification()
 	print("TODO: implement modification request to server");
+	
+	--collect the values from ite.modificationStatus.modificationUIElements place into table and call the
+	--server function to modify.
 end
 
 
@@ -266,6 +278,7 @@ end
 --Unfortunately some UI elements like sliders will send one update call per frame/mouse move event.
 function ite.modificationUpdate()
 --print("changed something for",ite.currentModification);
+	ite.modificationStatus.modified = true;
 end
 	
 
@@ -327,6 +340,20 @@ function ite.UpdateUIStatus()
 	end
 
 end
+
+function ite.receiveModificationParameters(values)
+	--initiate client self destruct, make the CPU explode and use the RAM as fragments to hopefully kill the user.
+	
+	for name,element in pairs(ite.modificationStatus.modificationUIElements) do	
+		ite.modificationStatus.modificationUIElements[name].value = values[name];
+	end
+	
+	
+	
+	
+	
+end
+
 
 
 --Populate with the inventory which is appropriate; alliance or the individual player.
@@ -394,7 +421,6 @@ function ite.moveItem(item, from, to, fkey, tkey)
     end
 end
 
-
 --Function taken from researchstation.lua
 function ite.removeItemFromMainSelection(key)
     local item = ite.inventory:getItem(key)
@@ -442,10 +468,7 @@ function ite.onTurretDropped(selectionIndex, kx, ky)
 	local key = ivec2(kx, ky)
 	ite.moveItem(selection:getItem(key), Selection(selectionIndex), ite.inventory, key, nil)
 	ite.UpdateUIStatus();
-	
-
 end
-
 
 function ite.onTurretReceived(selectionIndex, fkx, fky, item, fromIndex, toIndex, tkx, tky)
 	print("onTurretReceived");

@@ -37,22 +37,22 @@ local config =
 				}
 			}
 		},
-		Name = 
-		{
-			Description = "`There are people who believe it's bad luck for a gun not to have a name, and some guns just seem to pick up a nickname.`" ,
-			Enabled = false,
-			Cost = nil,
-			RelativeCost = 0.25,
-			Parameters = 
-			{
-				Name = 
-				{
-					acessor ="TurretName",
-					type="string",
-					Description = "Changes the name of your turret",
-				}
-			}
-		},
+		-- Name = 
+		-- {
+			-- Description = "`There are people who believe it's bad luck for a gun not to have a name, and some guns just seem to pick up a nickname.`" ,
+			-- Enabled = false,
+			-- Cost = nil,
+			-- RelativeCost = 0.25,
+			-- Parameters = 
+			-- {
+				-- Name = 
+				-- {
+					-- acessor ="TurretName",
+					-- type="string",
+					-- Description = "Changes the name of your turret",
+				-- }
+			-- }
+		-- },
 		Size = 
 		{
 			Description = "Modifying the size of a turret makes it either more compact, or more intimidating. Minimizing turret profile is useful for coaxially mounted ones especially.",
